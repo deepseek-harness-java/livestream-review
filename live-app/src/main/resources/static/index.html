@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直播复盘台 · Livestream Review</title>
+<style>
+  :root{
+    --bg:#f6f2fa; --card:#fff; --ink:#2a2036; --sub:#7d7190; --line:#e8e0f1;
+    --violet:#6a3fc4; --violet-soft:#efe8fb; --hot:#d94f4f; --ok:#2f9e5f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(120deg,#4a2a94,#6a3fc4 60%,#8b63e0);color:#fff;padding:18px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{font-size:21px}
+  header .meta{font-size:13px;opacity:.9}
+  .wrap{max-width:1440px;margin:0 auto;padding:20px 24px 40px;display:flex;gap:20px;align-items:flex-start}
+  .main{flex:1;min-width:0}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+  .panel h2{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .panel h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--violet)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .stat{background:#faf8fd;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .stat .k{font-size:12px;color:var(--sub)}
+  .stat .v{font-size:20px;font-weight:700;margin-top:4px;color:var(--violet)}
+  .stat .v small{font-size:12px;color:var(--sub);font-weight:400}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#f7f3fc;text-align:left;padding:8px 10px;color:var(--sub);border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:9px 10px;border-bottom:1px solid #f3eef9;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr.clickable{cursor:pointer} tr.clickable:hover td{background:#faf8fd}
+  tr.sel td{background:var(--violet-soft)}
+  .sess{font-weight:600}
+  .live-tag{font-size:10px;color:#fff;background:var(--hot);border-radius:5px;padding:1px 6px;font-weight:700}
+  .end-tag{font-size:10px;color:#fff;background:#b3aac4;border-radius:5px;padding:1px 6px;font-weight:700}
+  .gmv{font-weight:700;color:var(--violet)}
+  .bad{color:var(--hot)}.good{color:var(--ok)}
+  .funnel-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);margin-top:4px}
+  .funnel-bar .bar{flex:1;height:8px;background:#efeaf6;border-radius:4px;overflow:hidden}
+  .funnel-bar .bar i{display:block;height:100%;background:linear-gradient(90deg,#6a3fc4,#9b7ae8);border-radius:4px}
+  .evt{font-size:11px;color:var(--violet);background:var(--violet-soft);border-radius:5px;padding:1px 7px}
+  /* AI */
+  .side{width:380px;flex-shrink:0;position:sticky;top:16px}
+  .ai{background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;height:calc(100vh - 60px);overflow:hidden}
+  .ai-head{background:linear-gradient(120deg,#6a3fc4,#8b63e0);color:#fff;padding:14px 16px;font-weight:600;font-size:15px}
+  .ai-head small{display:block;font-weight:400;font-size:11px;opacity:.85;margin-top:2px}
+  .ai-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#fbf9fe}
+  .msg{max-width:88%;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+  .msg.user{align-self:flex-end;background:var(--violet);color:#fff;border-bottom-right-radius:3px}
+  .msg.bot{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:3px}
+  .ai-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff}
+  .ai-input textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;height:44px;outline:none}
+  .ai-input textarea:focus{border-color:var(--violet)}
+  .ai-input button{background:var(--violet);color:#fff;border:none;border-radius:8px;padding:0 18px;font-size:13px;cursor:pointer}
+  .ai-input button:disabled{opacity:.55;cursor:not-allowed}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 10px;background:#fff}
+  .chip{font-size:11px;color:var(--violet);background:var(--violet-soft);border:1px solid #ddd0f3;border-radius:20px;padding:3px 10px;cursor:pointer}
+  .hint{font-size:11px;color:var(--sub);padding:0 14px 10px;background:#fff}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>📺 直播复盘台</h1><div class="meta">场次 · 漏斗 · 趋势 · 主播绩效 | 2026-09-24</div></div>
+  <div class="meta" id="headStat"></div>
+</header>
+<div class="wrap">
+  <div class="main">
+    <div class="panel">
+      <h2><span class="dot"></span>经营总览</h2>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="dot"></span>场次列表（点击加载复盘）</h2>
+      <table><thead><tr><th>场次</th><th>主播</th><th>峰值场观</th><th>GMV</th><th>订单</th><th>转化率</th><th>状态</th></tr></thead>
+      <tbody id="sess"></tbody></table>
+    </div>
+    <div class="panel" id="detailPanel" style="display:none">
+      <h2><span class="dot"></span>复盘详情：<span id="detailTitle"></span></h2>
+      <div class="stats" id="reviewStats" style="margin-bottom:14px"></div>
+      <h2 style="font-size:13px;margin-top:6px"><span class="dot" style="background:#9b7ae8"></span>商品漏斗（曝光 → 点击 → 下单）</h2>
+      <table><thead><tr><th>商品</th><th>曝光</th><th>点击 CTR</th><th>下单 CVR</th><th>GMV</th><th>退款率</th><th>备注</th></tr></thead>
+      <tbody id="funnel"></tbody></table>
+      <h2 style="font-size:13px;margin-top:16px"><span class="dot" style="background:#9b7ae8"></span>小时节奏</h2>
+      <table><thead><tr><th>时段</th><th>在线</th><th>订单</th><th>GMV</th><th>运营事件</th></tr></thead>
+      <tbody id="tl"></tbody></table>
+    </div>
+    <div class="panel">
+      <h2><span class="dot"></span>主播绩效</h2>
+      <table><thead><tr><th>主播</th><th>等级</th><th>累计 GMV</th><th>场次</th><th>平均转化</th><th>长项</th><th>短板</th></tr></thead>
+      <tbody id="anchors"></tbody></table>
+    </div>
+  </div>
+  <aside class="side">
+    <div class="ai">
+      <div class="ai-head">🤖 直播复盘助手<small>live-copilot · 场次复盘 / 漏斗断点 / 流量节奏 / 主播建议</small></div>
+      <div class="ai-log" id="log"></div>
+      <div class="chips" id="chips"></div>
+      <div class="hint">Enter 发送 · Shift+Enter 换行</div>
+      <div class="ai-input">
+        <textarea id="q" placeholder="例如：复盘 9.23 美妆场，找商品转化断点"></textarea>
+        <button id="send">发送</button>
+      </div>
+    </div>
+  </aside>
+</div>
+<script>
+let curSid = '';
+const fmt = n => n >= 10000 ? (n/10000).toFixed(1) + '万' : n.toLocaleString();
+const wan = n => n >= 10000 ? (n/10000).toFixed(1) + '万' : n.toLocaleString();
+async function j(url, opt){ const r = await fetch(url,opt); const d = await r.json(); return d.data!==undefined?d.data:d; }
+async function refresh(){
+  const ov = await j('/api/overview');
+  document.getElementById('headStat').textContent = ov.liveNow.length ? '🔴 正在直播：' + ov.liveNow.join('、') : '当前无直播';
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="k">场次总数</div><div class="v">${ov.sessionCount}</div></div>
+    <div class="stat"><div class="k">累计 GMV</div><div class="v">${wan(ov.totalGmv)}</div></div>
+    <div class="stat"><div class="k">累计订单</div><div class="v">${fmt(ov.totalOrders)}</div></div>
+    <div class="stat"><div class="k">正在直播</div><div class="v" style="font-size:15px">${ov.liveNow.length||'无'}</div></div>`;
+  const ss = await j('/api/sessions');
+  document.getElementById('sess').innerHTML = ss.map(s=>`
+    <tr class="clickable ${curSid===s.id?'sel':''}" onclick="loadDetail('${s.id}')">
+      <td><span class="sess">${s.title}</span><div style="font-size:11px;color:var(--sub)">${s.id} · ${s.date} ${s.startEnd}</div></td>
+      <td>${s.anchor}</td>
+      <td>${s.peakViewers?fmt(s.peakViewers):'—'}</td>
+      <td class="gmv">${s.gmv?'¥'+wan(s.gmv):'—'}</td>
+      <td>${s.orders?fmt(s.orders):'—'}</td>
+      <td>${s.conversionRate?s.conversionRate+'%':'—'}</td>
+      <td><span class="${s.status==='直播中'?'live-tag':'end-tag'}">${s.status}</span></td>
+    </tr>`).join('');
+  const as = await j('/api/anchors');
+  document.getElementById('anchors').innerHTML = as.map(a=>`
+    <tr><td><b>${a.name}</b></td><td>${a.level}</td><td class="gmv">${a.totalGmv?'¥'+wan(a.totalGmv):'—'}</td>
+    <td>${a.sessions}</td><td>${a.avgConversion?a.avgConversion+'%':'—'}</td>
+    <td style="font-size:12px" class="good">${a.strength}</td>
+    <td style="font-size:12px" class="bad">${a.weakness}</td></tr>`).join('');
+}
+async function loadDetail(sid){
+  curSid = sid;
+  const rev = await j('/api/review?id='+sid);
+  const s = rev.session;
+  document.getElementById('detailPanel').style.display='block';
+  document.getElementById('detailTitle').textContent = s.title;
+  document.getElementById('reviewStats').innerHTML = `
+    <div class="stat"><div class="k">GMV</div><div class="v">${s.gmv?'¥'+wan(s.gmv):'—'}</div></div>
+    <div class="stat"><div class="k">转化率</div><div class="v">${s.conversionRate||'—'}<small> %</small></div></div>
+    <div class="stat"><div class="k">客单价</div><div class="v">${rev.avgOrderValue?'¥'+rev.avgOrderValue:'—'}</div></div>
+    <div class="stat"><div class="k">UV 价值 / 退款率</div><div class="v" style="font-size:16px">${rev.gmvPerUv||'—'} <small>/</small> <span class="${rev.refundRate>=3?'bad':'good'}">${rev.refundRate}%</span></div></div>
+    <div style="grid-column:1/-1;font-size:13px;background:#faf8fd;border:1px solid var(--line);border-radius:8px;padding:10px 12px">📌 <b>复盘结论：</b>${rev.verdict}</div>`;
+  const fu = await j('/api/funnel?id='+sid);
+  document.getElementById('funnel').innerHTML = fu.goods.map(f=>`
+    <tr><td><b>${f.goodsName}</b></td><td>${fmt(f.exposures)}</td>
+    <td><div class="funnel-bar"><div class="bar"><i style="width:${Math.min(100,f.ctr*2)}%"></i></div>${f.ctr}%</div></td>
+    <td><div class="funnel-bar"><div class="bar"><i style="width:${Math.min(100,f.cvr*8)}%"></i></div>${f.cvr}%</div></td>
+    <td class="gmv">${f.gmv?'¥'+wan(f.gmv):'—'}</td>
+    <td class="${f.refundRate>=3?'bad':''}">${f.refundRate}%</td>
+    <td style="font-size:12px;color:var(--sub)">${f.remark}</td></tr>`).join('');
+  const tl = await j('/api/timeline?id='+sid);
+  document.getElementById('tl').innerHTML = tl.points.map(p=>`
+    <tr><td>${p.hour}</td><td>${fmt(p.viewers)}</td><td>${p.orders}</td><td class="gmv">¥${wan(p.gmv)}</td>
+    <td><span class="evt">${p.event}</span></td></tr>`).join('');
+  refresh();
+}
+const log = document.getElementById('log'), q = document.getElementById('q'), btn = document.getElementById('send');
+function add(cls,t){ const d=document.createElement('div'); d.className='msg '+cls; d.textContent=t; log.appendChild(d); log.scrollTop=log.scrollHeight; return d; }
+const CHIPS = ['复盘 9.23 美妆场','哪场直播效果最好','分析耳机为什么卖爆','主播绩效对比与培养建议'];
+function setChips(){
+  const el = document.getElementById('chips');
+  el.innerHTML = CHIPS.map(t=>`<span class="chip">${t}</span>`).join('');
+  el.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{q.value=c.textContent;send();});
+}
+async function send(){
+  const text = q.value.trim(); if(!text||btn.disabled) return;
+  q.value=''; btn.disabled=true; add('user',text);
+  const b = add('bot','…');
+  try{
+    const resp = await fetch('/api/assistant/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+    const reader = resp.body.getReader(), dec = new TextDecoder();
+    let buf='', out='';
+    while(true){
+      const {done,value} = await reader.read(); if(done) break;
+      buf += dec.decode(value,{stream:true});
+      let idx;
+      while((idx=buf.indexOf('\n\n'))>=0){
+        const blk = buf.slice(0,idx); buf = buf.slice(idx+2);
+        let ev='', data='';
+        for(const line of blk.split('\n')){
+          if(line.startsWith('event:')) ev = line.slice(6).trim();
+          if(line.startsWith('data:')) data += line.slice(5).trim();
+        }
+        if(!data) continue;
+        try{
+          const o = JSON.parse(data);
+          if(ev==='chunk' && o.content) out += o.content;
+          else if(o.type==='text' && o.delta) out += o.delta;
+          else if(typeof o.content==='string') out += o.content;
+        }catch(e){}
+        b.textContent = out || '…'; log.scrollTop = log.scrollHeight;
+      }
+    }
+    if(!out) b.textContent = '（未收到回复，请确认本地 DSH 已启动且插件已激活）';
+  }catch(e){ b.textContent = '连接失败：'+e.message; }
+  btn.disabled=false; setChips(); refresh();
+}
+btn.onclick = send;
+q.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} });
+setChips(); refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+id: live-copilot
+name: 直播复盘助手
+version: 1.0.0
+author: xfg-studio
+description: 直播复盘助手，支持场次查询、单场复盘指标（GMV/转化/客单/UV 价值/退款率）、商品成交漏斗断点分析、小时流量趋势、主播绩效评估。
+entrypoint: cn.xiaofuge.live.plugin.LivePlugin
